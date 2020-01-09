@@ -1,0 +1,128 @@
+\documentclass{article}
+%\documentclass[final]{dune}
+\usepackage[utf8]{inputenc}
+
+\usepackage{graphicx}
+
+\usepackage{float}
+
+\usepackage{xspace}
+
+\usepackage[table]{xcolor}
+
+\usepackage{odsfile}
+
+\usepackage{tabularx}
+\usepackage{array}
+
+
+% if we aren't using the DUNE class then we need the packages...
+\usepackage{siunitx}
+% end of packages included instead of using DUNE
+
+\input{units.tex}
+\usepackage[hidelinks]{hyperref}
+\input{defs.tex}
+\input{glossary.tex}
+\title{DUNE DAQ Firmware Resource Utilization}
+\author{David Cussans, Patrick Dunne, Kostas Manolopoulos,\\ Erdem Motuk, Simone Ponzio, Alessandro Thea}
+\date{January 2020}
+
+\begin{document}
+
+\tabletemplate{booktabs}{\begin{tabular}{-{coltypes}}\toprule-{colheading}\midrule-{content}\\ \bottomrule\end{tabular}}
+
+\maketitle
+
+\section{Introduction}
+
+The DUNE \dword{us-daq} performs functions which include:
+
+\begin{itemize}
+  \item Finding "hits" in the data received from the \single module(s). (Trigger Primitive Generation)
+  \item Holding a continually rolling buffer of O(10s) of incoming data (10s buffer)
+  \item receiving \dword{tcm} and returning event fragments retried from the 10s buffer.
+  \item Storing O(100s) of data if a potential \dword{snb} has been detected
+\end{itemize}
+
+This document describes the resources needed to perform these tasks using \dword{fpga} logic.
+
+\subsection{Assumptions}
+
+This document makes the following assumptions about the \dword{us-daq} receiving the data from the \single \dword{tpc}:
+
+\begin{itemize}
+  \item Data from the \dword{wib} are carried on optical fibres and received by \dword{felix} PCIe boards.
+  \item Each \dword{felix} hosts a single \dword{fpga}.
+  \item Each \dword{felix} receives the data from a single \dword{apa}.
+  \item The 10s and 100s buffers are implemented on the \dword{felix} boards.
+  \item The \dword{fpga} are from the Xilinx Ultrascale+ , Zynq Ultrascale+ or Versal  families.
+\end{itemize}
+
+\subsection{Processing Blocks}
+
+Figure~\ref{fig:daq-firmware-block-diagram}  illustrates the firmware blocks considered. Each \single \dword{wib} fibre carries data from 256 channels. A buffering and reordering stage (shown in green in figure~\ref{fig:daq-firmware-block-diagram}) converts the data into packets containing multiple time-ticks for a single channel and distributes them across four processing chains for each \dword{wib} fibre. This arrangement is illustrated in figure~\ref{fig:wib-data-rx-mux}
+
+\begin{figure}[H]
+  % Generated using draw.io online tool from dune_daq_felix_hitfinding_blocks_02.drawio
+  \includegraphics[width=1.1\textwidth]{dune_daq_felix_hitfinding_blocks_02.pdf}
+  \caption{Illustration of the components in the \dword{us-daq} firmware. }
+  \label{fig:daq-firmware-block-diagram}
+\end{figure}
+
+\begin{figure}[H]
+  % Generated using draw.io online tool from DUNE_firmware_single_wib_fibre_block_diagram_01.drawio
+  \includegraphics[width=1.1\textwidth]{DUNE_firmware_single_wib_fibre_block_diagram_01.pdf}
+  \caption{Block diagram of data reception and reordering of \dword{wib} data, followed by multiplexing onto four processing chains. Each processing block contains pedestal subtraction, filtering and hit-finding stages.}
+  \label{fig:wib-data-rx-mux}
+\end{figure}
+
+\section{Resource Usage}
+
+Table~\ref{tab:block_numbers} lists the number of each type of processing block needed for each \dword{apa}. Table~\ref{tab:block_resource_usage} shows how much \dword{fpga} resource is need for each processing block and the total resource needed per \dword{apa}.
+
+\begin{table}[ht]
+\begin{tabular}{l l}
+\includespread[file=dune_daq_firmware_resource_usage_01.ods,sheet=BlockNumbers, columns=head,range=a:b7]
+\end{tabular}
+\caption{Number of processing blocks per \dword{apa}}
+\label{tab:block_numbers}
+\end{table}
+
+\begin{table}[ht]
+\rowcolors{2}{green!60!yellow!20}{green!20!yellow!60}
+\begin{tabular}{p{2.2cm}  |p{1.5cm}| p{1.3cm}| p{1.3cm} |p{1.3cm} |p{1.5cm} |p{1.3cm}| p{1.5cm}}
+\includespread[file=dune_daq_firmware_resource_usage_01.ods,sheet=ResourcesUsed,columns=head,range=a:h9]
+\end{tabular}
+\caption{\dword{fpga} resources used by different processing blocks. The amount of dedicated RAM has been expressed both as the number of 36kbit Block RAM tiles and also as the number of Mbits used.}
+\label{tab:block_resource_usage}
+\end{table}
+
+Table~\ref{tab:resource_fraction} shows the fraction of resources used to process a single \dword{apa} for three different Xilinx \dword{fpga}: ZU15EG Zynq Ultrascale+, VU9P Virtex Ultrascale+ and VM1802 Versal Prime. 
+
+Notes:
+
+\begin{itemize}
+    \item Resource usage of the processing blocks is based on current hit finding, compression and memory management firmware located at \url{https://gitlab.cern.ch/DUNE-SP-TDR-DAQ/dataflow-firmware/}
+    \item Resource usage of the \dword{felix} infrastructure is extrapolated from the firmware built following \url{https://wiki.dunescience.org/wiki/Instructions_for_Building_Felix_FLX712_Firmware_with_Hit_finding}
+    \item Resource usage for NVMe interface is taken from documentation available at \url{https://dgway.com/NVMe-IP_X_E.html}
+    \item Up to now firmware has been built on either ZU9EG (on ZCU102 Development board) or KCU115 (on FLX712 \dword{felix} board) which have only "block ram" rather than the "UltraRAM" available on some of the Ultrascale+ \dword{fpga}.
+\end{itemize}
+
+\begin{table}[ht]
+\rowcolors{3}{green!60!yellow!20}{green!20!yellow!60}
+\begin{tabular}{p{2.2cm} | p{1.5cm} | p{1.3cm} p{1.3cm} | p{1.3cm} p{1.5cm} | p{1.3cm} p{1.5cm}}
+\includespread[file=dune_daq_firmware_resource_usage_01.ods,sheet=FPGAResources,columns=head,range=a:h9]
+\end{tabular}
+\caption{Fraction of  resources used to process a single \dword{apa} for different \dword{fpga} }
+\label{tab:resource_fraction}
+\end{table}
+
+\section{Discussion}
+
+An informal rule of thumb is that it is unwise to plan to use more than 60\% of \dword{fpga}. By this measure there is sufficient resource on all of ZU15EG Zynq Ultrascale+, VU9P Virtex Ultrascale+ and VM1802 Versal Prime to process the data from one \dword{apa}. However, there is only sufficient resource on the VU9P to process the data from two \dword{apa} on a single \dword{fpga}. This conclusion rests on the assumption that much of the memory implemented in Block RAM in current designs can be moved to Ultra RAM. However, from examination of the code this is a safe assumption. 
+
+\newpage
+\printglossary
+
+\end{document}

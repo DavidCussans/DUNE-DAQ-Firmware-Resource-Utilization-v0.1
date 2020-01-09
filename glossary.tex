@@ -137,6 +137,12 @@
   the data, performs a \gls{trigdecision}, builds events from the selected
   data and delivers the result to the offline \gls{diskbuffer}}
 
+\newduneabbrev{us-daq}{US-DAQ}{Upstream DAQ}{The part of the data acquisition system
+  that accepts data from the detector FE electronics, buffers
+  the data, and performs a \gls{trigdecision} before passing the data on to the \gls{be-daq}}
+
+\newduneabbrev{be-daq}{BE-DAQ}{Back-end DAQ}{Receives data from the \gls{us-daq} and performs local buffering and processing before delivers the result to the offline \gls{diskbuffer}}
+
 %detector module
 \newduneword{detmodule}{detector module}{The entire DUNE far detector is
   segmented into four modules, each with a nominal \SI{10}{\kton}
