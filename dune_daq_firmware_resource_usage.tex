@@ -25,7 +25,7 @@
 \input{defs.tex}
 \input{glossary.tex}
 \title{DUNE DAQ Firmware Resource Utilization}
-\author{David Cussans, Patrick Dunne, Kostas Manolopoulos,\\ Erdem Motuk, Simone Ponzio, Alessandro Thea}
+\author{David Cussans, Patrick Dunne, Francesco Gonnella,\\ Kunal Kothekar, Kostas Manolopoulos, Erdem Motuk,\\ Simone Ponzio, Alessandro Thea, Abigail Waldron}
 \date{January 2020}
 
 \begin{document}
@@ -45,7 +45,7 @@ The DUNE \dword{us-daq} performs functions which include:
   \item Storing O(100s) of data if a potential \dword{snb} has been detected
 \end{itemize}
 
-This document describes the resources needed to perform these tasks using \dword{fpga} logic.
+This document describes the resources needed to perform these tasks for the \single \dword{tpc} using \dword{fpga} logic.
 
 \subsection{Assumptions}
 
@@ -82,6 +82,7 @@ Figure~\ref{fig:daq-firmware-block-diagram}  illustrates the firmware blocks con
 Table~\ref{tab:block_numbers} lists the number of each type of processing block needed for each \dword{apa}. Table~\ref{tab:block_resource_usage} shows how much \dword{fpga} resource is need for each processing block and the total resource needed per \dword{apa}.
 
 \begin{table}[ht]
+\rowcolors{2}{green!60!yellow!20}{green!20!yellow!60}
 \begin{tabular}{l l}
 \includespread[file=dune_daq_firmware_resource_usage_01.ods,sheet=BlockNumbers, columns=head,range=a:b7]
 \end{tabular}
@@ -117,6 +118,27 @@ Notes:
 \caption{Fraction of  resources used to process a single \dword{apa} for different \dword{fpga} }
 \label{tab:resource_fraction}
 \end{table}
+
+\section{External Interfaces and I/O Bandwidth}
+
+\subsection{Bandwidth from \dword{wib}}
+
+Each \single \dword{apa} has 2560 channels read out at 2MSamples/s at 12-bit precision, a data rate of  \SI{61.4e9}{bits/\second} = 57.2 Gbit/s. Based on preliminary analysis of \dword{protodune} data\cite{ref:waldron_protodune_compression} a compression factor of $\sim 2.5$ is expected. Assuming a 20\% overhead will be needed for metadata the data rate that needs to be buffered is $\sim 28$~Gbit/s per \dword{apa} = 3.5 GBytes/s per \dword{apa}.
+
+\subsection{10s buffer (DDR Memory)}
+
+DDR4 memory provides a bandwidth of 21.3 GBytes/s for 64-bit wide DDR4-2666 memory. However, when operated as a rolling buffer this bandwidth must be divided between writing and reading. There will also be some overhead involved in swapping between reading and writing blocks of data. One 64-bit DDR4-2666 memory interface will comfortably provide sufficient bandwidth to buffer the  compressed data from one  \dword{apa}, however it would be unwise to assume that the data from two \dword{apa} could be handled by one memory interface.
+
+\subsection{100s buffer (NVMe Storage)}
+
+Potential \dword{snb} data will be written to non-volatile storage on the receipt of a \dword{snb} trigger. These triggers will occur relatively infrequently ( $< 1/$~day and so although the data must be written a maximum speed they can be read out slowly. \dword{nvme} attached \dword{ssd} are the candidate devices being considered. These \dword{ssd} are available in sufficiently large capacity ($> 500$~GBytes) to act as a 100s buffer. The highest write speed currently available is 4.3 GBytes/s\cite{ref:AORUS-NVMe-Gen4-SSD-1TB}. 
+
+In order to provide margin for a smaller than expected compression ratio two \dword{nvme} attached \dword{ssd} will be used per \dword{apa}.
+
+
+% References
+% 1. Abbey's compression studies
+% 2. Gigabyte AORUS-NVMe-Gen4-SSD-1TB
 
 \section{Discussion}
 
