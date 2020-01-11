@@ -104,10 +104,11 @@ Table~\ref{tab:resource_fraction} shows the fraction of resources used to proces
 Notes:
 
 \begin{itemize}
-    \item Resource usage of the processing blocks is based on current hit finding, compression and memory management firmware located at \url{https://gitlab.cern.ch/DUNE-SP-TDR-DAQ/dataflow-firmware/}
-    \item Resource usage of the \dword{felix} infrastructure is extrapolated from the firmware built following \url{https://wiki.dunescience.org/wiki/Instructions_for_Building_Felix_FLX712_Firmware_with_Hit_finding}
-    \item Resource usage for NVMe interface is taken from documentation available at \url{https://dgway.com/NVMe-IP_X_E.html}
+    \item Resource usage of the processing blocks is based on current hit finding, compression and memory management firmware located at \url{https://gitlab.cern.ch/DUNE-SP-TDR-DAQ/dataflow-firmware/}. Usage for Ultrascale+
+    \item Resource usage of the \dword{felix} infrastructure is extrapolated from the firmware built following \url{https://wiki.dunescience.org/wiki/Instructions_for_Building_Felix_FLX712_Firmware_with_Hit_finding}. Usage for Kintex Ultrascale
+    \item Resource usage for NVMe interface is taken from documentation available at \url{https://dgway.com/NVMe-IP_X_E.html}. Usage quoted for Kinex Ultrascale. Almost indentical for Virtex Ultrascale+
     \item Up to now firmware has been built on either ZU9EG (on ZCU102 Development board) or KCU115 (on FLX712 \dword{felix} board) which have only "block ram" rather than the "UltraRAM" available on some of the Ultrascale+ \dword{fpga}.
+    \item The estimated fraction of Versal VM1802 is based on the assumption that the usage of CLB and DSP on Versal and Ultrascale(+) are the same.
 \end{itemize}
 
 \begin{table}[ht]
@@ -123,7 +124,7 @@ Notes:
 
 \subsection{Bandwidth from \dword{wib}}
 
-Each \single \dword{apa} has 2560 channels read out at 2MSamples/s at 12-bit precision, a data rate of  \SI{61.4e9}{bits/\second} = 57.2 Gbit/s. Based on preliminary analysis of \dword{protodune} data\cite{ref:waldron_protodune_compression} a compression factor of $\sim 2.5$ is expected. Assuming a 20\% overhead will be needed for metadata the data rate that needs to be buffered is $\sim 28$~Gbit/s per \dword{apa} = 3.5 GBytes/s per \dword{apa}.
+Each \single \dword{apa} has 2560 channels read out at 2MSamples/s at 12-bit precision, a data rate of  \SI{61.4e9}{bits/\second}. Based on preliminary analysis of \dword{protodune} data\cite{ref:waldron_protodune_compression} a compression factor of $\sim 2.5$ is expected. Assuming a 20\% overhead will be needed for metadata the data rate that needs to be buffered is $\sim 29$~Gbit/s per \dword{apa} = 3.6 GBytes/s\footnote{N.B. SI units for Giga and Mega used throughout.} per \dword{apa}.
 
 \subsection{10s buffer (DDR Memory)}
 
@@ -131,7 +132,7 @@ DDR4 memory provides a bandwidth of 21.3 GBytes/s for 64-bit wide DDR4-2666 memo
 
 \subsection{100s buffer (NVMe Storage)}
 
-Potential \dword{snb} data will be written to non-volatile storage on the receipt of a \dword{snb} trigger. These triggers will occur relatively infrequently ( $< 1/$~day and so although the data must be written a maximum speed they can be read out slowly. \dword{nvme} attached \dword{ssd} are the candidate devices being considered. These \dword{ssd} are available in sufficiently large capacity ($> 500$~GBytes) to act as a 100s buffer. The highest write speed currently available is 4.3 GBytes/s\cite{ref:AORUS-NVMe-Gen4-SSD-1TB}. 
+Potential \dword{snb} data will be written to non-volatile storage on the receipt of a \dword{snb} trigger. These triggers will occur relatively infrequently ( $< 1/$~day and so although the data must be written a maximum speed they can be read out slowly. \dword{nvme} attached \dword{ssd} are the candidate devices being considered. These \dword{ssd} are available in sufficiently large capacity ($> 500$~GBytes) to act as a 100s buffer. The highest write speed on devices currently available is 4.3 GBytes/s\cite{ref:AORUS-NVMe-Gen4-SSD-1TB}. Prototypes have been demonstrated 
 
 In order to provide margin for a smaller than expected compression ratio two \dword{nvme} attached \dword{ssd} will be used per \dword{apa}.
 
@@ -142,7 +143,27 @@ In order to provide margin for a smaller than expected compression ratio two \dw
 
 \section{Discussion}
 
-An informal rule of thumb is that it is unwise to plan to use more than 60\% of \dword{fpga}. By this measure there is sufficient resource on all of ZU15EG Zynq Ultrascale+, VU9P Virtex Ultrascale+ and VM1802 Versal Prime to process the data from one \dword{apa}. However, there is only sufficient resource on the VU9P to process the data from two \dword{apa} on a single \dword{fpga}. This conclusion rests on the assumption that much of the memory implemented in Block RAM in current designs can be moved to Ultra RAM. However, from examination of the code this is a safe assumption. 
+An informal ``rule of thumb'' is that it is unwise to plan to use more than 60\% of \dword{fpga}. By this measure there is sufficient resource on all of ZU15EG Zynq Ultrascale+, VU9P Virtex Ultrascale+ and VM1802 Versal Prime to process the data from one \dword{apa}. However, there is only sufficient resource on the VU9P to process the data from two \dword{apa} on a single \dword{fpga}. This conclusion rests on the assumption that much of the memory implemented in Block RAM in current designs can be moved to Ultra RAM. However, from examination of the code this is a safe assumption. 
+
+
+\begin{thebibliography}{999}
+
+\bibitem{ref:waldron_protodune_compression}
+  Abigail Waldron,
+  Fibonnaci Encoding of ProtoDUNE Data, Unpublished,
+  2018.
+  
+  \bibitem{ref:AORUS-NVMe-Gen4-SSD-1TB}
+  AORUS NVMe Gen4 SSD 1TB,
+  \url{https://www.aorus.com/AORUS-NVMe-Gen4-SSD-1TB}
+  
+  %\bibitem{}
+  %\url{https://www.theregister.co.uk/2019/01/15/pcie4_demo_ssd_controller/}
+  
+  %\bibitem{}
+  %https://www.legitreviews.com/phison-ps5016-e16-pcie-gen4-x4-demo-at-ces-2019_210110
+
+\end{thebibliography}
 
 \newpage
 \printglossary
