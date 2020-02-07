@@ -34,12 +34,17 @@
 
 \maketitle
 
+
+\begin{abstract}
+    The \gls{fpga} resources needed to perform various DUNE upstream DAQ functions are estimated and compared to the resources available in example \gls{fpga} devices from the Xilinx Zynq Ultrascale+, Virtex Ultrascale+ and Versal families.
+\end{abstract}
+
 \section{Introduction}
 
 The DUNE \dword{us-daq} performs functions which include:
 
 \begin{itemize}
-  \item Finding "hits" in the data received from the \single module(s). (Trigger Primitive Generation)
+  \item Finding ``hits'' in the data received from the \single module(s). (Trigger Primitive Generation)
   \item Holding a continually rolling buffer of O(10s) of incoming data (10s buffer)
   \item receiving \dword{tcm} and returning event fragments retried from the 10s buffer.
   \item Storing O(100s) of data if a potential \dword{snb} has been detected
@@ -107,7 +112,7 @@ Notes:
     \item Resource usage of the processing blocks is based on current hit finding, compression and memory management firmware located at \url{https://gitlab.cern.ch/DUNE-SP-TDR-DAQ/dataflow-firmware/}. Usage for Ultrascale+
     \item Resource usage of the \dword{felix} infrastructure is extrapolated from the firmware built following \url{https://wiki.dunescience.org/wiki/Instructions_for_Building_Felix_FLX712_Firmware_with_Hit_finding}. Usage for Kintex Ultrascale
     \item Resource usage for NVMe interface is taken from documentation available at \url{https://dgway.com/NVMe-IP_X_E.html}. Usage quoted for Kinex Ultrascale. Almost indentical for Virtex Ultrascale+
-    \item Up to now firmware has been built on either ZU9EG (on ZCU102 Development board) or KCU115 (on FLX712 \dword{felix} board) which have only "block ram" rather than the "UltraRAM" available on some of the Ultrascale+ \dword{fpga}.
+    \item Up to now firmware has been built on either ZU9EG (on ZCU102 Development board) or KCU115 (on FLX712 \dword{felix} board) which have only "block RAM" rather than the "UltraRAM" available on some of the Ultrascale+ \dword{fpga}.
     \item The estimated fraction of Versal VM1802 is based on the assumption that the usage of CLB and DSP on Versal and Ultrascale(+) are the same.
 \end{itemize}
 
